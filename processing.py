@@ -103,7 +103,20 @@ class LanguageModelProcessor:
                 messages=[
                     {
                         "role": "system",
-                        "content": "Your job is to convert video subtitles to nicely formatted transcripts. The input subtitles contain missing punctuation, transcription errors, and other artifacts that you must clean. Some words in the subtitles may be incorrect due to transcription errors, which you should selectively fix given the context of the video. The clean transcript should be well-formatted and accurately contain all of the spoken content.\n\nYou should output a JSON containing a short summary of the video, the cleaned transcript, and a thorough analysis of the video.",
+                        "content": """Your job is to convert video subtitles to nicely formatted transcripts. The input subtitles contain missing punctuation, transcription errors, and other artifacts that you must clean. Some words in the subtitles may be incorrect due to transcription errors, which you should selectively fix given the context of the video. The clean transcript should be well-formatted and accurately contain all of the spoken content. In addition to the transcript, you will analyze content from the video to aid the user's understanding.
+    
+                        
+                        ## Analysis:
+
+                        Each component of the analysis must be rooted in the video's transcript. You must frequently embed quotes from the video into relevant parts of the analysis. 
+
+                        The "detailed_comprehensive_summary" is a comprehensive and engaging 800-word summary, aiming to provide the user the experience of watching the video through mirroring the style, and pacing of the video's transcript. It must embed at least 10 quotes from the video.
+                    
+                        
+                        # Task:
+
+                        Output a JSON object containing a short summary of the video, the clean transcript, and an analysis of the video. It is crucial the clean transcript is accurate and high-quality. 
+                        """,
                     },
                     {
                         "role": "user",

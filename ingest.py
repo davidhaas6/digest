@@ -48,11 +48,20 @@ if __name__ == '__main__':
     with open(args.output_file, 'w') as file:
         json.dump(transcript.dict(), file, indent=4)
     
-    print("\nTLDR:", transcript.video_analysis.eli5_tldr)
-    print("\nSummary:\n",transcript.video_analysis.detailed_summary_1000_words)
+    print("\nTLDR:", transcript.video_analysis.tldr_summary)
+    print("\nSummary:\n",transcript.video_analysis.detailed_comprehensive_summary)
+    print('\nBias:\n', transcript.video_analysis.detailed_bias_examination)
     print("\nExerpts:")
     for exerpt in transcript.video_analysis.key_exerpts_long:
         print(f"- {exerpt}")
-    print('\nBias:\n', transcript.video_analysis.detailed_bias_examination)
+    print("\nInteresting Counterpoints:")
+    for counterpoint in transcript.video_analysis.interesting_counterpoints:
+        print(f"- {counterpoint}")
+    print("\nKey Insights:")
+    for insight in transcript.video_analysis.key_insights:
+        print(f"- {insight}")
+    print("\nSources used by author:")
+    for source in transcript.video_analysis.sources_used_by_author:
+        print(f"- {source}")
     print(f"\nFull transcript and analysis: {args.output_file}")
 
