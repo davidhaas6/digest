@@ -1,8 +1,8 @@
-# Summarize videos
+# Digest videos with ease
 A tool to assist with video selection and understanding.
 
 ```python
-python3 ingest.py https://www.youtube.com/watch?v=9bZkp7q19f0
+python3 digest.py https://www.youtube.com/watch?v=9bZkp7q19f0
 ```
 
 Its output contains:
@@ -82,5 +82,3 @@ Sources used by author:
 
 Full transcript and analysis: out_transcript.json
 ```
-
-``````
