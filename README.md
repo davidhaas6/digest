@@ -22,7 +22,7 @@ pip install -r requirements.txt
 
 ## Example output:
 ```
-py ingest.py https://www.youtube.com/watch?v=77omYd0JOeA
+py digest.py https://www.youtube.com/watch?v=77omYd0JOeA
 [youtube] 77omYd0JOeA: Downloading webpage
 [info] Writing video subtitles to: cache/77omYd0JOeA.en.vtt
 Querying LLM...
