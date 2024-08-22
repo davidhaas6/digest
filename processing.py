@@ -8,12 +8,12 @@ import time
 import util
 
 class Analysis(BaseModel):
+    transcript_chapters: List[str]
+    key_exerpts: List[str]
     detailed_comprehensive_summary: str
-    tldr_summary: str
-    video_section_titles: List[str]
+    tldr_summary_final_draft: str
     key_insights: List[str]
-    key_exerpts_long: List[str]
-    sources_used_by_author: List[str]
+    sources_used: List[str]
     detailed_bias_examination: str
     interesting_counterpoints: List[str]
 
@@ -22,6 +22,11 @@ class ProcessedTranscript(BaseModel):
     summary_short: str
     clean_transcript: str
     video_analysis: Analysis
+
+
+class Transcript(BaseModel):
+    summary_short: str
+    clean_transcript: str
 
 
 class VTTParser:
@@ -96,8 +101,10 @@ class LanguageModelProcessor:
     def __init__(self) -> None:
         self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
-    def llm_sanatize(self, text: str) -> ProcessedTranscript:
-        print("Querying LLM...")
+    def process(self, text: str) -> ProcessedTranscript:
+        pass
+
+    def sanitize_analyze(self, text: str) -> ProcessedTranscript:
         def api_call():
             return self.client.beta.chat.completions.parse(
                 messages=[
@@ -111,6 +118,8 @@ class LanguageModelProcessor:
                         Each component of the analysis must be rooted in the video's transcript. You must frequently embed quotes from the video into relevant parts of the analysis. 
 
                         The "detailed_comprehensive_summary" is a comprehensive and engaging 800-word summary, aiming to provide the user the experience of watching the video through mirroring the style, and pacing of the video's transcript. It must embed at least 10 quotes from the video.
+
+                        The "key_exerpts" should be direct quotes from the video transcript that are insightful and help contextualize the content for the user.
                     
                         
                         # Task:
@@ -129,18 +138,81 @@ class LanguageModelProcessor:
             )
         
         estimated_time = self._estimate_processing_time(text)
-        print ("Estimated processing time:", estimated_time, "seconds")
-        start = time.time()
-
         completion = util.run_with_progress(api_call, estimated_time)
         output: ProcessedTranscript = completion.choices[0].message.parsed
 
-        end = time.time()
         num_letters_in = len(re.findall(r'[a-zA-Z]', text))
         num_letters_out = len(re.findall(r'[a-zA-Z]', output.clean_transcript))
-        print("Actual processing time:", round(end-start), "seconds\n")
         print("Input length:", num_letters_in, "letters. Cleaned transcript length:", num_letters_out, "letters")
 
+        return output
+    
+
+    def subtitles_to_transcript(self, subtitles: str) -> Transcript:
+        def llm_clean():
+            return self.client.beta.chat.completions.parse(
+                messages=[
+                    {
+                        "role": "system",
+                        "content": """Your job is to convert video subtitles to nicely formatted transcripts. The input subtitles contain missing punctuation, transcription errors, and other artifacts that you must clean. Some words in the subtitles may be incorrect due to transcription errors, which you should selectively fix given the context of the video. The clean transcript should be well-formatted and accurately contain all of the spoken content.
+    
+                        
+                        # Task:
+
+                        Output a JSON object containing a short summary of the video, the clean transcript. It is crucial the clean transcript is accurate, complete, and high-quality. 
+                        """,
+                    },
+                    {
+                        "role": "user",
+                        "content": subtitles,
+                    }
+                ],
+                response_format=Transcript,
+                temperature=0,
+                model="gpt-4o-mini",
+            )
+        
+        estimated_time = self._estimate_processing_time(subtitles)
+        completion = util.run_with_progress(llm_clean, estimated_time)
+        output: Transcript = completion.choices[0].message.parsed
+        return output
+
+    def analyze_transcript(self, transcript: str) -> Analysis:
+        """Extract summaries, insights, and other data from a transcript
+        
+        """
+        def llm_analyze():
+            return self.client.beta.chat.completions.parse(
+                messages=[
+                    {
+                        "role": "system",
+                        "content": """Your job is to summarize and analyze transcripts to help someone understand its content. Your analysis must be thorough, insightful, and embed quotes from the transcript.
+                        
+
+                        ## Analysis Components:
+                        The different components of the analysis are described by the name of their JSON key. These components have more detailed descriptions:
+
+                         - The "detailed_comprehensive_summary" is a comprehensive and engaging 800-word summary, aiming to emulate reading the full transcript through mirroring its style, tone, and pacing. The summary must contain at least 10 quotes from the transcript.
+                         - The "key_exerpts" should be direct quotes from the transcript that are insightful and help contextualize its content.
+                    
+                        
+                        # Task:
+                        Output a JSON object containing an analysis of the transcript.
+                        """,
+                    },
+                    {
+                        "role": "user",
+                        "content": transcript,
+                    }
+                ],
+                response_format=Analysis,
+                temperature=0.3,
+                model="gpt-4o-2024-08-06",
+            )
+        
+        estimated_time = self._estimate_processing_time(transcript)
+        completion = util.run_with_progress(llm_analyze, estimated_time)
+        output: Analysis = completion.choices[0].message.parsed
         return output
 
     def _count_tokens(self, text: str) -> int:
@@ -168,8 +240,10 @@ def vtt_to_md(input_file) -> ProcessedTranscript:
     md_converter = MarkdownConverter()
     markdown_output = md_converter.convert_to_markdown(sanitized_subtitles)
 
+    return markdown_output
+
+
+def analyze_transcript(subtitles: str) -> ProcessedTranscript:
     llm_processor = LanguageModelProcessor()
-    processed_transcript = llm_processor.llm_sanatize(markdown_output)
-
+    processed_transcript = llm_processor.sanitize_analyze(subtitles)
     return processed_transcript
-
