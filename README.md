@@ -14,8 +14,8 @@ Its output contains:
 
 ## Installation
 ```bash
-git clone https://github.com/davidhaas6/ingest.git
-cd ingest
+git clone https://github.com/davidhaas6/digest.git
+cd digest
 pip install -r requirements.txt
 ```
 
