@@ -148,7 +148,7 @@ class LanguageModelProcessor:
         return output
     
 
-    def subtitles_to_transcript(self, subtitles: str) -> Transcript:
+    def sanitize(self, subtitles: str) -> Transcript:
         def llm_clean():
             return self.client.beta.chat.completions.parse(
                 messages=[
@@ -169,10 +169,11 @@ class LanguageModelProcessor:
                 ],
                 response_format=Transcript,
                 temperature=0,
+                top_p=.95,
                 model="gpt-4o-mini",
             )
         
-        estimated_time = self._estimate_processing_time(subtitles)
+        estimated_time = self._estimate_processing_time(subtitles) * 2
         completion = util.run_with_progress(llm_clean, estimated_time)
         output: Transcript = completion.choices[0].message.parsed
         return output
@@ -222,6 +223,7 @@ class LanguageModelProcessor:
     
     def _estimate_processing_time(self, text: str) -> float:
         token_count = self._count_tokens(text)
+        print(token_count, 'tokens')
         tps_estimates = [183, 112, 80, 140, 100]
         tokens_per_s = sum(tps_estimates) / len(tps_estimates)
         initial_estimate = token_count / tokens_per_s

@@ -56,18 +56,20 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.youtube_dl:
-        transcripts = subtitles_ydl([args.video_url])
+        subitles = subtitles_ydl([args.video_url])[0]
     else:
-        transcripts = subtitles_go([args.video_url])
-    text_transcript = transcripts[0]
+        subitles = subtitles_go([args.video_url])[0]
 
-    if args.transcript:
-        print(text_transcript)
-        exit(0)
+
     
     llm_processor = processing.LanguageModelProcessor()
-    analysis = llm_processor.analyze_transcript(text_transcript)
-    transcript_data = processing.ProcessedTranscript(summary_short='', clean_transcript=text_transcript, video_analysis=analysis)
+    transcript_data = llm_processor.sanitize(subitles)
+    analysis = llm_processor.analyze_transcript(transcript_data.clean_transcript)
+    transcript_data = processing.ProcessedTranscript(
+        summary_short=transcript_data.summary_short, 
+        clean_transcript=transcript_data.clean_transcript, 
+        video_analysis=analysis
+    )
     
 
     # transcript_data = processing.analyze_transcript(text_transcript)
@@ -76,20 +78,20 @@ if __name__ == '__main__':
     with open(args.output_file, 'w') as file:
         json.dump(transcript_data.dict(), file, indent=4)
     
-    print("\nTLDR:", transcript_data.video_analysis.tldr_summary_final_draft)
-    print("\nSummary:\n",transcript_data.video_analysis.detailed_comprehensive_summary)
-    print('\nBias:\n', transcript_data.video_analysis.detailed_bias_examination)
+    print("\nTLDR:", analysis.tldr_summary_final_draft)
+    print("\nSummary:\n",analysis.detailed_comprehensive_summary)
+    print('\nBias:\n', analysis.detailed_bias_examination)
     print("\nExerpts:")
-    for exerpt in transcript_data.video_analysis.key_exerpts:
+    for exerpt in analysis.key_exerpts:
         print(f"- {exerpt}")
     print("\nInteresting Counterpoints:")
-    for counterpoint in transcript_data.video_analysis.interesting_counterpoints:
+    for counterpoint in analysis.interesting_counterpoints:
         print(f"- {counterpoint}")
     print("\nKey Insights:")
-    for insight in transcript_data.video_analysis.key_insights:
+    for insight in analysis.key_insights:
         print(f"- {insight}")
     print("\nSources used by author:")
-    for source in transcript_data.video_analysis.sources_used:
+    for source in analysis.sources_used:
         print(f"- {source}")
     print(f"\nFull transcript and analysis: {args.output_file}")
 
