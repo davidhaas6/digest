@@ -5,7 +5,7 @@ A tool to assist with video selection and understanding.
 python3 digest.py https://www.youtube.com/watch?v=9bZkp7q19f0
 ```
 
-Its output contains:
+The output contains:
  - A clean video transcript (you could give this to other LLMs)
  - Various video summaries
  - Examination of bias
@@ -19,10 +19,12 @@ cd digest
 pip install -r requirements.txt
 ```
 
+Optional but recommended dependency: https://github.com/kkdai/youtube
+
 
 ## Example output:
 ```
-py digest.py https://www.youtube.com/watch?v=77omYd0JOeA
+python digest.py https://www.youtube.com/watch?v=77omYd0JOeA
 [youtube] 77omYd0JOeA: Downloading webpage
 [info] Writing video subtitles to: cache/77omYd0JOeA.en.vtt
 Querying LLM...
