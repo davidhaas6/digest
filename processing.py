@@ -173,7 +173,7 @@ class LanguageModelProcessor:
                 model="gpt-4o-mini",
             )
         
-        estimated_time = self._estimate_processing_time(subtitles) * 2
+        estimated_time = self._estimate_processing_time(subtitles)
         completion = util.run_with_progress(llm_clean, estimated_time)
         output: Transcript = completion.choices[0].message.parsed
         return output
@@ -211,7 +211,7 @@ class LanguageModelProcessor:
                 model="gpt-4o-2024-08-06",
             )
         
-        estimated_time = self._estimate_processing_time(transcript)
+        estimated_time = self._estimate_processing_time(transcript) * .5
         completion = util.run_with_progress(llm_analyze, estimated_time)
         output: Analysis = completion.choices[0].message.parsed
         return output
