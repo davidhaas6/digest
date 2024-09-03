@@ -6,7 +6,8 @@ import youtube_dl
 import os
 import processing
 import json
-
+import re
+from datetime import datetime
 
 def subtitles_ydl(youtube_urls: List[str]) -> List[processing.ProcessedTranscript]:
     if not os.path.exists('cache'):
@@ -46,11 +47,34 @@ def subtitles_go(youtube_urls: List[str]) -> List[str]:
     return subtitles
 
 
+def extract_youtube_id(url):
+    pattern = r'(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=|embed\/|v\/)?(?:shorts\/)?(?:(?!watch)[\w-]{11})(?:[^\s"\'<>]+)?'
+    
+    match = re.search(pattern, url)
+    if match:
+        # Extract the video ID part from the match object
+        video_id = re.search(r'[\w-]{11}', match.group(0))
+        return video_id.group(0) if video_id else None
+    return None
+
+
+def save_transcript(transcript_data: processing.ProcessedTranscript, video_url: str):
+    current_file_dir = os.path.dirname(os.path.abspath(__file__))
+    out_dir = os.path.join(current_file_dir, 'out')
+    os.makedirs(out_dir, exist_ok=True)
+
+    output_file_name = extract_youtube_id(args.video_url) or datetime.now().strftime("%Y%m%d_%H%M%S")
+    out_path = os.path.join(out_dir, output_file_name) + '.json'
+    with open(out_path, 'w') as file:
+        data = transcript_data.dict()
+        data['url'] = args.video_url
+        json.dump(data, file, indent=4)
+    return out_path
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Youtube Summarizer")
     parser.add_argument("video_url", help="Youtube video URL to pull transcript from")
-    parser.add_argument("output_file", help="Path to the output file", default='out_transcript.json', nargs='?')
     parser.add_argument("-t", "--transcript", help="Only get the transcript", action="store_true")
     parser.add_argument("-y", "--youtube-dl", help="Use Python ydl implementation", action="store_true")
     args = parser.parse_args()
@@ -61,7 +85,6 @@ if __name__ == '__main__':
         subitles = subtitles_go([args.video_url])[0]
 
 
-    
     llm_processor = processing.LanguageModelProcessor()
     transcript_data = llm_processor.sanitize(subitles)
     analysis = llm_processor.analyze_transcript(transcript_data.clean_transcript)
@@ -70,13 +93,8 @@ if __name__ == '__main__':
         clean_transcript=transcript_data.clean_transcript, 
         video_analysis=analysis
     )
-    
 
-    # transcript_data = processing.analyze_transcript(text_transcript)
-
-
-    with open(args.output_file, 'w') as file:
-        json.dump(transcript_data.dict(), file, indent=4)
+    out_path = save_transcript(transcript_data, args.video_url)
     
     print("\nTLDR:", analysis.tldr_summary_final_draft)
     print("\nSummary:\n",analysis.detailed_comprehensive_summary)
@@ -93,5 +111,5 @@ if __name__ == '__main__':
     print("\nSources used by author:")
     for source in analysis.sources_used:
         print(f"- {source}")
-    print(f"\nFull transcript and analysis: {args.output_file}")
+    print(f"\nFull transcript and analysis: {out_path}")
 
