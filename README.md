@@ -5,21 +5,27 @@ A tool to assist with video selection and understanding.
 python3 digest.py https://www.youtube.com/watch?v=9bZkp7q19f0
 ```
 
-The output contains:
- - A clean video transcript (you could give this to other LLMs)
- - Various video summaries
- - Examination of bias
- - And more
+What can you use this for?
+ - Video summarization
+ - Extracting a well-formatted video transcript
+ - Deciding whether a video's worth watching
+ - Analyzing the bias in a video
+ - Everybody's different, try it out and see for yourself!
 
 
 ## Installation
 ```bash
 git clone https://github.com/davidhaas6/digest.git
 cd digest
+python3 -m venv .venv
 pip install -r requirements.txt
 ```
 
-Optional but recommended dependency: https://github.com/kkdai/youtube
+## Configuration
+ - Tested and developed on Python 3.10.12
+ - export OPENAI_API_KEY="your-api-key-here"
+   - I recommend putting this in your venv's activation script, e.g. ./.venv/bin/activate
+ - Install https://github.com/kkdai/youtube (technically optional, but strongly recommended)
 
 
 ## Example output:
@@ -84,3 +90,42 @@ Sources used by author:
 
 Full transcript and analysis: out_transcript.json
 ```
+
+---
+
+## Converting to a Command-Line Utility
+
+I like to use this script as a command-line utility, which makes it that much easier to summarize videos. To do this:
+
+1. Create a shell script named `digest` with the following content:
+
+```bash
+#!/bin/bash
+
+VENV_PATH="/path/to/your/venv"
+SCRIPT_PATH="/path/to/your/digest.py"
+
+source "$VENV_PATH/bin/activate"
+python3 "$SCRIPT_PATH" "$@"
+deactivate
+```
+
+2. Make the script executable:
+
+```bash
+chmod +x digest
+```
+
+3. Move the script to a directory in your PATH:
+
+```bash
+sudo mv digest /usr/local/bin/
+```
+
+Now you can run the script from anywhere:
+
+```bash
+digest https://www.youtube.com/watch?v=dQw4w9WgXcQ
+```
+
+Remember to replace `/path/to/your/venv` and `/path/to/your/digest.py` with the actual paths on your system.
