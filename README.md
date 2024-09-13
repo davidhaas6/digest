@@ -25,7 +25,7 @@ pip install -r requirements.txt
  - Tested and developed on Python 3.10.12
  - export OPENAI_API_KEY="your-api-key-here"
    - I recommend putting this in your venv's activation script, e.g. ./.venv/bin/activate
- - Install https://github.com/kkdai/youtube (technically optional, but strongly recommended)
+ - Install https://github.com/danielmiessler/yt (technically optional, but strongly recommended)
 
 
 ## Example output:
